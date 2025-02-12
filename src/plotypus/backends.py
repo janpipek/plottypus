@@ -41,11 +41,23 @@ class Plotille(BaseBackend):
             fig.plot(df[x].to_list(), df[col_y].to_list(), label=col_y)
         print(fig.show(legend=True))
 
+    def hist(self, df: pl.DataFrame, *, x: str, y: list[str]):
+        if y:
+            raise ValueError("Plotille does not support histograms with y values")
+
+        df = df.drop_nulls([x])
+
+        print(plotille.histogram(df[x].cast(pl.Float64).to_list()))
+
 
 class Plotext(BaseBackend):
     def scatter(self, df: pl.DataFrame, *, x: str, y: list[str]):
         for col_y in y:
             plt.scatter(df[x], df[col_y])
+        plt.show()
+
+    def hist(self, df: pl.DataFrame, *, x: str, y: list[str]):
+        plt.hist(df[x].cast(pl.Float64))
         plt.show()
 
 
