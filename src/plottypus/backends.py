@@ -7,7 +7,7 @@ import plotille
 import polars as pl
 from physt import h1, h2
 
-from plotypus.core import Backend
+from plottypus.core import Backend
 
 
 @dataclass

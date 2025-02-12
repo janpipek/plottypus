@@ -1,4 +1,4 @@
-# plotypus
+# plottypus
 
 **!!! WORK IN PROGRESS !!!**
 
@@ -14,21 +14,21 @@ various plotting libraries in Python:
 The application is (pip/uv/pipx-installable):
 
 ```
-uv tool install plotypus
+uv tool install plottypus
 ```
 
 ```
-pipx install plotypus
+pipx install plottypus
 ```
 
 ```
-pip install plotypus
+pip install plottypus
 ```
 
 ## Usage
 
 ```
-Usage: plotypus [OPTIONS] [PATH]
+Usage: plottypus [OPTIONS] [PATH]
 
  Plot data from a file.
 

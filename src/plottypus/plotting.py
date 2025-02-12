@@ -3,8 +3,8 @@ from typing import Optional
 
 import polars as pl
 
-from plotypus.backends import get_backend
-from plotypus.core import Backend, PlotType
+from plottypus.backends import get_backend
+from plottypus.core import Backend, PlotType
 
 
 def plot(

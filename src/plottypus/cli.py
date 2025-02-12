@@ -4,9 +4,9 @@ from typing import Optional
 
 import typer
 
-from plotypus.core import Backend, PlotType
-from plotypus.data import read_table
-from plotypus.plotting import plot
+from plottypus.core import Backend, PlotType
+from plottypus.data import read_table
+from plottypus.plotting import plot
 
 
 def app(

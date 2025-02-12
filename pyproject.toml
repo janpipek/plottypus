@@ -1,5 +1,5 @@
 [project]
-name = "plotypus"
+name = "plottypus"
 version = "0.1.0"
 description = "Wrapper around plotting libraries for the terminal."
 readme = "README.md"
@@ -15,7 +15,7 @@ dependencies = [
 ]
 
 [project.scripts]
-plotypus = "plotypus.cli:run"
+plottypus = "plottypus.cli:run"
 
 [build-system]
 requires = ["flit_core>=3.2,<4"]
