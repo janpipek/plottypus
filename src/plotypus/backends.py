@@ -1,3 +1,5 @@
+from typing import Optional
+
 import physt.plotting.ascii
 import plotext as plt
 import plotille
@@ -8,6 +10,10 @@ from plotypus.core import Backend
 
 
 class BaseBackend:
+    def __init__(self, width: Optional[int] = None, height: Optional[int] = None):
+        self.width = width
+        self.height = height
+
     def hist(self, df: pl.DataFrame, *, x: str, y: list[str]):
         return self._default_plot("hist", df, x=x, y=y)
 
@@ -52,12 +58,28 @@ class Plotille(BaseBackend):
 
 class Plotext(BaseBackend):
     def scatter(self, df: pl.DataFrame, *, x: str, y: list[str]):
+        df = df.drop_nulls([x, *y])
         for col_y in y:
             plt.scatter(df[x], df[col_y])
+        plt.plot_size(self.width, self.height)
         plt.show()
 
     def hist(self, df: pl.DataFrame, *, x: str, y: list[str]):
+        df = df.drop_nulls([x, *y])
         plt.hist(df[x].cast(pl.Float64))
+        plt.plot_size(self.width, self.height)
+        plt.show()
+
+    def hbar(self, df: pl.DataFrame, *, x: str, y: list[str]):
+        df = df.drop_nulls([x, *y])
+        plt.bar(df[y[0]], df[x], orientation="horizontal")
+        plt.plot_size(self.width, self.height)
+        plt.show()
+
+    def bar(self, df: pl.DataFrame, *, x: str, y: list[str]):
+        df = df.drop_nulls([x, *y])
+        plt.bar(df[x], df[y[0]])
+        plt.plot_size(self.width, self.height)
         plt.show()
 
 
@@ -84,10 +106,12 @@ class AutoBackend(BaseBackend):
         raise NotImplementedError(f"Plot type {name} not supported in any backend")
 
 
-def get_backend(backend: Backend) -> BaseBackend:
+def get_backend(
+    backend: Backend, *, width: Optional[int], height: Optional[int]
+) -> BaseBackend:
     return {
         Backend.AUTO: AutoBackend,
         Backend.PLOTILLE: Plotille,
         Backend.PLOTEXT: Plotext,
         Backend.PHYST: Physt,
-    }[backend]()
+    }[backend](width=width, height=height)

@@ -1,4 +1,6 @@
+import sys
 from pathlib import Path
+from typing import Optional
 
 import typer
 
@@ -8,7 +10,7 @@ from plotypus.plotting import plot
 
 
 def app(
-    path: str = typer.Argument(..., help="The path to the file to read."),
+    path: Optional[Path] = typer.Argument(None, help="The path to the file to read."),
     type: PlotType = typer.Option(
         PlotType.AUTO, "-t", "--type", help="The type of plot to create."
     ),
@@ -19,11 +21,19 @@ def app(
     backend: Backend = typer.Option(
         Backend.AUTO, "-b", "--backend", help="The plotting backend to use."
     ),
+    width: Optional[int] = typer.Option(
+        None, "-w", "--width", help="The width of the plot."
+    ),
+    height: Optional[int] = typer.Option(
+        None, "-h", "--height", help="The height of the plot."
+    ),
 ):
     """Plot data from a file."""
 
-    data = read_table(Path(path))
-    plot(data, x=x, y=y, type=type, backend=backend)
+    f = sys.stdin if not sys.stdin.isatty() else None
+
+    data = read_table(path=path, f=f)
+    plot(data, x=x, y=y, type=type, backend=backend, width=width, height=height)
 
 
 def run():

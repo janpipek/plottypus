@@ -14,6 +14,8 @@ def plot(
     y: str | Collection[str] | None = None,
     type: PlotType = PlotType.AUTO,
     backend: Backend = Backend.AUTO,
+    width: Optional[int] = None,
+    height: Optional[int] = None,
 ) -> None:
     if x:
         xcol = x
@@ -32,7 +34,7 @@ def plot(
     if type == "auto":
         type = _get_plot_type(df, xcol, ycols)
 
-    b = get_backend(backend)
+    b = get_backend(backend, width=width, height=height)
     return getattr(b, type.value)(df, x=xcol, y=ycols)
 
 
