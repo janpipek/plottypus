@@ -1,0 +1,22 @@
+[project]
+name = "plotypus"
+version = "0.1.0"
+description = "Wrapper around plotting libraries for the terminal."
+readme = "README.md"
+authors = [{ name = "Jan Pipek", email = "jan.pipek@gmail.com" }]
+requires-python = ">=3.11"
+dependencies = [
+    "physt[terminal]>=0.8.5",
+    "plotext>=5.3.2",
+    "plotille>=5.0.0",
+    "polars>=1.22.0",
+    "rich>=13.9.4",
+    "typer>=0.15.1",
+]
+
+[project.scripts]
+plotypus = "plotypus.cli:run"
+
+[build-system]
+requires = ["flit_core>=3.2,<4"]
+build-backend = "flit_core.buildapi"
