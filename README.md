@@ -47,3 +47,6 @@ Usage: plottypus [OPTIONS] [PATH]
 │ --help                                                        Show this message and exit.                   │
 ╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 ```
+
+You can pipe in CSV or Parquet data, enabling a natural collaboration with other tools
+like duckdb or xsv.
