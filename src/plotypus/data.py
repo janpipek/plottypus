@@ -1,6 +1,6 @@
 from io import BytesIO
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Optional, cast
 
 import polars as pl
 from polars import ComputeError
@@ -23,7 +23,9 @@ def read_table(*, path: Optional[Path] = None, f: Any = None) -> pl.DataFrame:
         f_ = BytesIO(f.buffer.read())
         for method in ["read_csv", "read_parquet"]:
             try:
-                return getattr(pl, method)(f_)
+                return cast(pl.DataFrame, getattr(pl, method)(f_))
             except ComputeError:
-                pass
+                continue
         raise ValueError("Could interpret input data.")
+
+    raise ValueError("Either provide a path or pipe data through stdin.")

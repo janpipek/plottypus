@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from typing import Optional
 
 import physt.plotting.ascii
@@ -9,10 +10,14 @@ from physt import h1, h2
 from plotypus.core import Backend
 
 
+@dataclass
 class BaseBackend:
-    def __init__(self, width: Optional[int] = None, height: Optional[int] = None):
-        self.width = width
-        self.height = height
+    width: int
+    height: int
+
+    def __init__(self, *, width: Optional[int] = None, height: Optional[int] = None):
+        self.width = width or plt.tw() or 80
+        self.height = height or plt.th() or 25
 
     def hist(self, df: pl.DataFrame, *, x: str, y: list[str]):
         return self._default_plot("hist", df, x=x, y=y)
@@ -39,10 +44,17 @@ class BaseBackend:
 
 
 class Plotille(BaseBackend):
+    @property
+    def _plotille_dims(self) -> dict:
+        return {
+            "width": max(1, self.width - 20),
+            "height": max(1, self.height - 7),
+        }
+
     def line(self, df: pl.DataFrame, *, x: str, y: list[str]):
         df = df.drop_nulls([x, *y])
 
-        fig = plotille.Figure()
+        fig = plotille.Figure(**self._plotille_dims)
         for col_y in y:
             fig.plot(df[x].to_list(), df[col_y].to_list(), label=col_y)
         print(fig.show(legend=True))
@@ -52,8 +64,9 @@ class Plotille(BaseBackend):
             raise ValueError("Plotille does not support histograms with y values")
 
         df = df.drop_nulls([x])
-
-        print(plotille.histogram(df[x].cast(pl.Float64).to_list()))
+        print(
+            plotille.histogram(df[x].cast(pl.Float64).to_list(), **self._plotille_dims)
+        )
 
 
 class Plotext(BaseBackend):
@@ -87,7 +100,7 @@ class Physt(BaseBackend):
     def hist(self, df: pl.DataFrame, *, x: str, y: list[str]):
         if len(y) == 0:
             h = h1(df[x], "pretty")
-            physt.plotting.ascii.hbar(h, show_values=True)
+            physt.plotting.ascii.hbar(h, show_values=True, width=self.width)
 
     def heatmap(self, df: pl.DataFrame, *, x: str, y: list[str]):
         if len(y) == 1:
@@ -99,7 +112,7 @@ class AutoBackend(BaseBackend):
     def _default_plot(self, name, *args, **kwargs):
         for backend_type in [Physt, Plotille, Plotext]:
             try:
-                backend = backend_type()
+                backend = backend_type(width=self.width, height=self.height)
                 return getattr(backend, name)(*args, **kwargs)
             except NotImplementedError:
                 pass

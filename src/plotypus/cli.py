@@ -31,6 +31,8 @@ def app(
     """Plot data from a file."""
 
     f = sys.stdin if not sys.stdin.isatty() else None
+    if not f and not path:
+        raise typer.BadParameter("Either provide a path or pipe data through stdin.")
 
     data = read_table(path=path, f=f)
     plot(data, x=x, y=y, type=type, backend=backend, width=width, height=height)
