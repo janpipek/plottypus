@@ -1,12 +1,10 @@
 from collections.abc import Collection
 from typing import Optional
 
-import physt.plotting.ascii
-import plotext as plt
 import polars as pl
-from physt import h1
 
-from plotypus.core import PlotType
+from plotypus.backends import get_backend
+from plotypus.core import Backend, PlotType
 
 
 def plot(
@@ -15,8 +13,8 @@ def plot(
     x: Optional[str] = None,
     y: str | Collection[str] | None = None,
     type: PlotType = PlotType.AUTO,
-    backend: str = "auto",
-):
+    backend: Backend = Backend.AUTO,
+) -> None:
     if x:
         xcol = x
     elif x is None and len(df.columns) == 1:
@@ -34,22 +32,8 @@ def plot(
     if type == "auto":
         type = _get_plot_type(df, xcol, ycols)
 
-    match type:
-        case PlotType.SCATTER:
-            scatter(df, x=xcol, y=ycols, backend=backend)
-        case PlotType.HIST:
-            hist(df, x=xcol, y=ycols, backend=backend)
-
-
-def scatter(df: pl.DataFrame, *, x: str, y: list[str], backend: str):
-    for col_y in y:
-        plt.scatter(df[x], df[col_y])
-    plt.show()
-
-
-def hist(df: pl.DataFrame, *, x: str, y: list[str], backend: str):
-    h = h1(df[x])
-    physt.plotting.ascii.hbar(h, show_values=True)
+    b = get_backend(backend)
+    return getattr(b, type.value)(df, x=xcol, y=ycols)
 
 
 def _get_plot_type(df: pl.DataFrame, xcol: str, ycols: Collection[str]) -> PlotType:
