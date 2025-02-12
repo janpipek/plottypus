@@ -1,5 +1,6 @@
 import physt.plotting.ascii
 import plotext as plt
+import plotille
 import polars as pl
 from physt import h1, h2
 
@@ -32,7 +33,13 @@ class BaseBackend:
 
 
 class Plotille(BaseBackend):
-    pass
+    def line(self, df: pl.DataFrame, *, x: str, y: list[str]):
+        df = df.drop_nulls([x, *y])
+
+        fig = plotille.Figure()
+        for col_y in y:
+            fig.plot(df[x].to_list(), df[col_y].to_list(), label=col_y)
+        print(fig.show(legend=True))
 
 
 class Plotext(BaseBackend):

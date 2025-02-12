@@ -20,7 +20,7 @@ def plot(
     elif x is None and len(df.columns) == 1:
         xcol = df.columns[0]
     else:
-        raise ValueError("Cannot determine x column.")
+        raise ValueError(f"Cannot determine x column, choose from: {df.columns}")
 
     if y is None:
         ycols = []
