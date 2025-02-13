@@ -16,3 +16,5 @@ class Backend(StrEnum):
     PLOTEXT = "plotext"
     PLOTILLE = "plotille"
     PHYST = "physt"
+    KITTY = "kitty"
+    NOTCURSES = "notcurses"

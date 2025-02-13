@@ -17,6 +17,11 @@ dependencies = [
 [project.scripts]
 plottypus = "plottypus.cli:run"
 
+[project.optional-dependencies]
+notcurses = ["matplotlib-backend-notcurses>=1.0.2"]
+kitty = ["matplotlib-backend-kitty>=2.1.2"]
+all = ["plottypus[notcurses,kitty]"]
+
 [build-system]
 requires = ["flit_core>=3.2,<4"]
 build-backend = "flit_core.buildapi"
