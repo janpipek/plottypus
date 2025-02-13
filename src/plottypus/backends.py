@@ -1,5 +1,7 @@
+from abc import ABC, abstractmethod
+from contextlib import contextmanager
 from dataclasses import dataclass
-from typing import Optional
+from typing import ContextManager, Optional
 
 import physt.plotting.ascii
 import plotext as plt
@@ -108,6 +110,49 @@ class Physt(BaseBackend):
             physt.plotting.ascii.map(h)
 
 
+class _MatplotlibBackend(BaseBackend, ABC):
+    @abstractmethod
+    def _setup_matplotlib(self) -> ContextManager:
+        ...
+
+    def hist(self, df: pl.DataFrame, *, x: str, y: list[str]):
+        with self._setup_matplotlib():
+            df = df.drop_nulls([x, *y])
+            import matplotlib.pyplot as plt
+
+            plt.hist(df[x].to_numpy(), bins=10)
+            plt.show()
+
+
+class Kitty(_MatplotlibBackend):
+    @contextmanager
+    def _setup_matplotlib(self):
+        try:
+            import matplotlib
+        except ImportError:
+            raise ImportError("kitty backend requires matplotlib")
+        else:
+            matplotlib.use("module://matplotlib-backend-kitty")
+            yield
+
+
+class NotCurses(_MatplotlibBackend):
+    @contextmanager
+    def _setup_matplotlib(self):
+        try:
+            import matplotlib
+        except ImportError:
+            raise ImportError("NotCurses backend requires matplotlib")
+        else:
+            matplotlib.use("module://matplotlib-backend-notcurses")
+            try:
+                yield
+            except FileNotFoundError:
+                raise ValueError(
+                    "NotCurses backend requires `notcurses-info` tool to be installed."
+                )
+
+
 class AutoBackend(BaseBackend):
     def _default_plot(self, name, *args, **kwargs):
         for backend_type in [Physt, Plotille, Plotext]:
@@ -127,4 +172,6 @@ def get_backend(
         Backend.PLOTILLE: Plotille,
         Backend.PLOTEXT: Plotext,
         Backend.PHYST: Physt,
+        Backend.KITTY: Kitty,
+        Backend.NOTCURSES: NotCurses,
     }[backend](width=width, height=height)
