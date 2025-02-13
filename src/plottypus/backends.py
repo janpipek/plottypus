@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from contextlib import contextmanager
 from dataclasses import dataclass
-from typing import ContextManager, Optional
+from typing import TYPE_CHECKING, Iterator, Optional
 
 import physt.plotting.ascii
 import plotext as plt
@@ -10,6 +10,9 @@ import polars as pl
 from physt import h1, h2
 
 from plottypus.core import Backend
+
+if TYPE_CHECKING:
+    from matplotlib.axes import Axes
 
 
 @dataclass
@@ -56,7 +59,10 @@ class Plotille(BaseBackend):
     def line(self, df: pl.DataFrame, *, x: str, y: list[str]):
         df = df.drop_nulls([x, *y])
 
-        fig = plotille.Figure(**self._plotille_dims)
+        fig = plotille.Figure()
+        fig.height = self._plotille_dims["height"]
+        fig.width = self._plotille_dims["width"]
+
         for col_y in y:
             fig.plot(df[x].to_list(), df[col_y].to_list(), label=col_y)
         print(fig.show(legend=True))
@@ -97,6 +103,14 @@ class Plotext(BaseBackend):
         plt.plot_size(self.width, self.height)
         plt.show()
 
+    def line(self, df: pl.DataFrame, *, x: str, y: list[str]):
+        df = df.drop_nulls([x, *y])
+        for col_y in y:
+            plt.plot(df[x], df[col_y], label=col_y)
+        plt.plot_size(self.width, self.height)
+        plt.xlabel(x)
+        plt.show()
+
 
 class Physt(BaseBackend):
     def hist(self, df: pl.DataFrame, *, x: str, y: list[str]):
@@ -111,46 +125,66 @@ class Physt(BaseBackend):
 
 
 class _MatplotlibBackend(BaseBackend, ABC):
-    @abstractmethod
-    def _setup_matplotlib(self) -> ContextManager:
-        ...
-
-    def hist(self, df: pl.DataFrame, *, x: str, y: list[str]):
+    @contextmanager
+    def get_axes(self) -> Iterator["Axes"]:
         with self._setup_matplotlib():
-            df = df.drop_nulls([x, *y])
             import matplotlib.pyplot as plt
 
-            plt.hist(df[x].to_numpy(), bins=10)
+            fig, ax = plt.subplots()
+            yield ax
             plt.show()
+
+    @abstractmethod
+    def _setup_matplotlib(self):
+        ...
+
+    def _apply_labels_and_legend(self, ax, xcol, ycols):
+        ax.set_xlabel(xcol)
+        if len(ycols) == 1:
+            ax.set_ylabel(ycols[0])
+        if len(ycols) > 1:
+            ax.legend()
+
+    def hist(self, df: pl.DataFrame, *, x: str, y: list[str]):
+        with self.get_axes() as ax:
+            df = df.drop_nulls([x, *y])
+            ax.hist(df[x].to_numpy())
+            ax.set_ylabel("Frequency")
+            self._apply_labels_and_legend(ax=ax, xcol=x, ycols=x)
+
+    def scatter(self, df: pl.DataFrame, *, x: str, y: list[str]):
+        with self.get_axes() as ax:
+            df = df.drop_nulls([x, *y])
+            for col_y in y:
+                ax.scatter(df[x].to_numpy(), df[col_y].to_numpy(), label=col_y)
+            self._apply_labels_and_legend(ax=ax, xcol=x, ycols=x)
+
+    def line(self, df: pl.DataFrame, *, x: str, y: list[str]):
+        with self.get_axes() as ax:
+            df = df.drop_nulls([x, *y])
+            for col_y in y:
+                ax.plot(df[x].to_numpy(), df[col_y].to_numpy(), label=col_y)
+            self._apply_labels_and_legend(ax=ax, xcol=x, ycols=x)
 
 
 class Kitty(_MatplotlibBackend):
     @contextmanager
-    def _setup_matplotlib(self):
-        try:
-            import matplotlib
-        except ImportError:
-            raise ImportError("kitty backend requires matplotlib")
-        else:
-            matplotlib.use("module://matplotlib-backend-kitty")
-            yield
+    def _setup_matplotlib(self) -> Iterator[None]:
+        # TODO: Check that it is supported
+        import matplotlib
+
+        matplotlib.use("module://matplotlib-backend-kitty")
+        yield
 
 
 class NotCurses(_MatplotlibBackend):
     @contextmanager
-    def _setup_matplotlib(self):
-        try:
-            import matplotlib
-        except ImportError:
-            raise ImportError("NotCurses backend requires matplotlib")
-        else:
-            matplotlib.use("module://matplotlib-backend-notcurses")
-            try:
-                yield
-            except FileNotFoundError:
-                raise ValueError(
-                    "NotCurses backend requires `notcurses-info` tool to be installed."
-                )
+    def _setup_matplotlib(self) -> Iterator[None]:
+        # TODO: Check that it is supported
+        import matplotlib
+
+        matplotlib.use("module://matplotlib-backend-notcurses")
+        yield
 
 
 class AutoBackend(BaseBackend):
