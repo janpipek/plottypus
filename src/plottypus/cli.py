@@ -19,7 +19,11 @@ def app(
         None, "-y", help="The column(s) to use for the y-axis."
     ),
     backend: Backend = typer.Option(
-        Backend.AUTO, "-b", "--backend", help="The plotting backend to use."
+        Backend.AUTO,
+        "-b",
+        "--backend",
+        help="The plotting backend to use.",
+        envvar="PLOTTYPUS_BACKEND",
     ),
     width: Optional[int] = typer.Option(
         None, "-w", "--width", help="The width of the plot."
