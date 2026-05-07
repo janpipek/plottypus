@@ -1,8 +1,9 @@
+import io
 import subprocess
 import tempfile
 from abc import ABC, abstractmethod
 from collections.abc import Iterable
-from contextlib import contextmanager
+from contextlib import contextmanager, redirect_stdout
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Iterator, Optional
 
@@ -81,38 +82,36 @@ class Plotille(BaseBackend):
 
 
 class Plotext(BaseBackend):
-    def scatter(self, df: pl.DataFrame, *, x: str, y: list[str]):
+    @contextmanager
+    def _plot_context(self, df: pl.DataFrame, *, x: str, y: list[str]):
         df = df.drop_nulls([x, *y])
-        for col_y in y:
-            plt.scatter(df[x], df[col_y])
+        yield df
         plt.plot_size(self.width, self.height)
         plt.show()
+        plt.clear_figure()
+
+    def scatter(self, df: pl.DataFrame, *, x: str, y: list[str]):
+        with self._plot_context(df=df, x=x, y=y) as df:
+            for col_y in y:
+                plt.scatter(df[x], df[col_y])
 
     def hist(self, df: pl.DataFrame, *, x: str, y: list[str]):
-        df = df.drop_nulls([x, *y])
-        plt.hist(df[x].cast(pl.Float64))
-        plt.plot_size(self.width, self.height)
-        plt.show()
+        with self._plot_context(df=df, x=x, y=y) as df:
+            plt.hist(df[x].cast(pl.Float64))
 
     def hbar(self, df: pl.DataFrame, *, x: str, y: list[str]):
-        df = df.drop_nulls([x, *y])
-        plt.bar(df[y[0]], df[x], orientation="horizontal")
-        plt.plot_size(self.width, self.height)
-        plt.show()
+        with self._plot_context(df=df, x=x, y=y) as df:
+            plt.bar(df[y[0]], df[x], orientation="horizontal")
 
     def bar(self, df: pl.DataFrame, *, x: str, y: list[str]):
-        df = df.drop_nulls([x, *y])
-        plt.bar(df[x], df[y[0]])
-        plt.plot_size(self.width, self.height)
-        plt.show()
+        with self._plot_context(df=df, x=x, y=y) as df:
+            plt.bar(df[x], df[y[0]])
 
     def line(self, df: pl.DataFrame, *, x: str, y: list[str]):
-        df = df.drop_nulls([x, *y])
-        for col_y in y:
-            plt.plot(df[x], df[col_y], label=col_y)
-        plt.plot_size(self.width, self.height)
-        plt.xlabel(x)
-        plt.show()
+        with self._plot_context(df=df, x=x, y=y) as df:
+            for col_y in y:
+                plt.plot(df[x], df[col_y], label=col_y)
+            plt.xlabel(x)
 
 
 class Xan(BaseBackend):
@@ -123,6 +122,9 @@ class Xan(BaseBackend):
 
     def scatter(self, df: pl.DataFrame, *, x: str, y: list[str]):
         self._plot(df=df, x=x, y=y)
+
+    def bar(self, df: pl.DataFrame, *, x: str, y: list[str]):
+        self._plot(df=df, x=x, y=y, flags=("-B",))
 
     def _plot(self, df: pl.DataFrame, *, x: str, y: list[str], flags: Iterable[str] = ()):
         with tempfile.NamedTemporaryFile() as f:
