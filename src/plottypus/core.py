@@ -18,3 +18,4 @@ class Backend(StrEnum):
     PHYST = "physt"
     KITTY = "kitty"
     NOTCURSES = "notcurses"
+    XAN = "xan"
