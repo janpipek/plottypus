@@ -8,6 +8,7 @@ various plotting libraries in Python:
 - [plotext](https://github.com/piccolomo/plotext)
 - [plotille](https://github.com/tammoippen/plotille)
 - [physt](https://github.com/janpipek/physt)
+- [xan](https://github.com/medialab/xan)
 
 ## Installation
 
