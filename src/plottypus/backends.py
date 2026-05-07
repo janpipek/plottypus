@@ -1,4 +1,7 @@
+import subprocess
+import tempfile
 from abc import ABC, abstractmethod
+from collections.abc import Iterable
 from contextlib import contextmanager
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Iterator, Optional
@@ -112,6 +115,43 @@ class Plotext(BaseBackend):
         plt.show()
 
 
+class Xan(BaseBackend):
+    EXE = "xan"
+
+    def line(self, df: pl.DataFrame, *, x: str, y: list[str]):
+        self._plot(df=df, x=x, y=y, flags=("-L",))
+
+    def scatter(self, df: pl.DataFrame, *, x: str, y: list[str]):
+        self._plot(df=df, x=x, y=y)
+
+    def _plot(self, df: pl.DataFrame, *, x: str, y: list[str], flags: Iterable[str] = ()):
+        with tempfile.NamedTemporaryFile() as f:
+            df.write_csv(f.name)
+            args = [
+                self.EXE,
+                "plot",
+                *flags,
+                "--cols",
+                str(self.width),
+                "--rows",
+                str(self.height),
+                x,
+            ]
+            if y:
+                args.append(y[0])
+            args.append(f.name)
+            for yi in y[1:]:
+                args += ["-Y", yi]
+            try:
+                subprocess.run(
+                    args,
+                    text=True
+                )
+            except FileNotFoundError as exc:
+                if exc.filename == self.EXE:
+                    raise FileNotFoundError(f"{self.EXE} is not available. Check your path or install from https://github.com/medialab/xan.") from None
+
+
 class Physt(BaseBackend):
     def hist(self, df: pl.DataFrame, *, x: str, y: list[str]):
         if len(y) == 0:
@@ -208,4 +248,5 @@ def get_backend(
         Backend.PHYST: Physt,
         Backend.KITTY: Kitty,
         Backend.NOTCURSES: NotCurses,
+        Backend.XAN: Xan
     }[backend](width=width, height=height)

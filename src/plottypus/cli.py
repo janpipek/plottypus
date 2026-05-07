@@ -2,6 +2,7 @@ import sys
 from pathlib import Path
 from typing import Optional
 
+import click
 import typer
 
 from plottypus.core import Backend, PlotType
@@ -39,7 +40,11 @@ def app(
         raise typer.BadParameter("Either provide a path or pipe data through stdin.")
 
     data = read_table(path=path, f=f)
-    plot(data, x=x, y=y, type=type, backend=backend, width=width, height=height)
+    try:
+        plot(data, x=x, y=y, type=type, backend=backend, width=width, height=height)
+    except Exception as e:
+        click.secho("Error: " + str(e), fg="red")
+        # sys.exit(-1)
 
 
 def run():
