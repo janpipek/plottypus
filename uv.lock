@@ -624,6 +624,7 @@ name = "plottypus"
 version = "0.3.0"
 source = { editable = "." }
 dependencies = [
+    { name = "narwhals" },
     { name = "physt" },
     { name = "plotext" },
     { name = "plotille" },
@@ -648,6 +649,7 @@ notcurses = [
 requires-dist = [
     { name = "matplotlib-backend-kitty", marker = "extra == 'kitty'", specifier = ">=2.1.2" },
     { name = "matplotlib-backend-notcurses", marker = "extra == 'notcurses'", specifier = ">=1.0.2" },
+    { name = "narwhals", specifier = ">=2.20.0" },
     { name = "physt", specifier = ">=0.9.0" },
     { name = "plotext", specifier = ">=5.3.2" },
     { name = "plotille", specifier = ">=6.0.0" },
