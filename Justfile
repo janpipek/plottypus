@@ -1,5 +1,5 @@
 help:
-    uv run plotypus --help
+    uv run plottypus --help
 
 build:
     rm -rf dist/

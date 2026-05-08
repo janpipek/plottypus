@@ -1,14 +1,16 @@
 from collections.abc import Collection
 from typing import Optional
 
-import polars as pl
+import narwhals as nw
+from narwhals.typing import FrameT
 
 from plottypus.backends import get_backend
 from plottypus.core import Backend, PlotType
 
 
+@nw.narwhalify
 def plot(
-    df: pl.DataFrame,
+    df: FrameT,
     *,
     x: Optional[str] = None,
     y: str | Collection[str] | None = None,
@@ -38,7 +40,7 @@ def plot(
     return getattr(b, type.value)(df, x=xcol, y=ycols)
 
 
-def _get_plot_type(df: pl.DataFrame, xcol: str, ycols: Collection[str]) -> PlotType:
+def _get_plot_type(df: nw.DataFrame, xcol: str, ycols: Collection[str]) -> PlotType:
     """Find the best plot type based on the input data."""
     if df[xcol].dtype.is_numeric():
         if not ycols:

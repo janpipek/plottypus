@@ -1,31 +1,28 @@
-from io import BytesIO
+from io import BytesIO, TextIOWrapper
 from pathlib import Path
-from typing import Any, Optional, cast
+from typing import cast
 
 import polars as pl
-from polars import ComputeError
 
 
-def read_table(*, path: Optional[Path] = None, f: Any = None) -> pl.DataFrame:
-    if path:
-        if f:
-            raise ValueError("Cannot read from both path and file object.")
-
+def read_table(path_or_file: str | Path | TextIOWrapper) -> pl.DataFrame:
+    if isinstance(path_or_file, Path | str):
+        path = Path(path_or_file)
         match path.suffix:
             case ".csv":
                 return pl.read_csv(path)
             case ".parquet":
                 return pl.read_parquet(path)
             case _:
-                raise ValueError(f"Unsupported file format: {path.suffix}")
+                raise ValueError(f"Unsupported file format: {path_or_file.suffix}")
 
-    if f:
-        f_ = BytesIO(f.buffer.read())
+    elif isinstance(path_or_file, TextIOWrapper):
+        f_ = BytesIO(path_or_file.buffer.read())
         for method in ["read_csv", "read_parquet"]:
             try:
                 return cast(pl.DataFrame, getattr(pl, method)(f_))
-            except ComputeError:
+            except:  # noqa: E722
                 continue
         raise ValueError("Could interpret input data.")
 
-    raise ValueError("Either provide a path or pipe data through stdin.")
+    raise TypeError(f"Unsupported input object: {type(path_or_file)}")

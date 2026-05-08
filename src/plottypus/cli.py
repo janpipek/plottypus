@@ -39,7 +39,7 @@ def app(
     if not f and not path:
         raise typer.BadParameter("Either provide a path or pipe data through stdin.")
 
-    data = read_table(path=path, f=f)
+    data = read_table(path_or_file=path or f)
     try:
         plot(data, x=x, y=y, type=type, backend=backend, width=width, height=height)
     except Exception as e:
