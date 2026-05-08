@@ -14,30 +14,32 @@ def plot(
     *,
     x: Optional[str] = None,
     y: str | Collection[str] | None = None,
-    type: PlotType = PlotType.AUTO,
-    backend: Backend = Backend.AUTO,
+    type: PlotType | str = PlotType.AUTO,
+    backend: Backend | str = Backend.AUTO,
     width: Optional[int] = None,
     height: Optional[int] = None,
 ) -> None:
     if x:
-        xcol = x
+        xcol: str = x
     elif x is None and len(df.columns) == 1:
         xcol = df.columns[0]
     else:
         raise ValueError(f"Cannot determine x column, choose from: {df.columns}")
 
     if y is None:
-        ycols = []
+        ycols: list[str] = []
     elif isinstance(y, str):
         ycols = [y]
     else:
         ycols = list(y)
 
     if type == "auto":
-        type = _get_plot_type(df, xcol, ycols)
+        type_ = _get_plot_type(df, xcol, ycols)
+    else:
+        type_ = PlotType(type)
 
-    b = get_backend(backend, width=width, height=height)
-    return getattr(b, type.value)(df, x=xcol, y=ycols)
+    b = get_backend(Backend(backend), width=width, height=height)
+    return getattr(b, type_.value)(df, x=xcol, y=ycols)
 
 
 def _get_plot_type(df: nw.DataFrame, xcol: str, ycols: Collection[str]) -> PlotType:

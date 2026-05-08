@@ -10,7 +10,7 @@ def read_table(path_or_file: str | Path | TextIOWrapper) -> pl.DataFrame:
         path = Path(path_or_file)
         match path.suffix:
             case ".csv":
-                return pl.read_csv(path)
+                return pl.read_csv(path, try_parse_dates=True)
             case ".parquet":
                 return pl.read_parquet(path)
             case _:
